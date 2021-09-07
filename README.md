@@ -1,6 +1,8 @@
 # Collection
 
 
-This script copies files only if they are larger than the ones in the target directory.
-It is useful if you need to merge 2 folders of same list of files or find the latest version.
+This script copies files from a source to a target folder.
+Firstly, it checks if a file exists.  
+If not, it copies over directly, if yes, it copies only the if larger.
+It is useful if you need to merge folders from different backups with a mix of similar and different files inside. 
 
