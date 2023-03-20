@@ -1,0 +1,48 @@
+@RestController
+public class CryptoController {
+    
+    @GetMapping("/top-gainers")
+    public List<Crypto> getTopGainers() {
+        return getCryptos("https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=false&price_change_percentage=12h");
+    }
+    
+    @GetMapping("/top-losers")
+    public List<Crypto> getTopLosers() {
+        return getCryptos("https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=false&price_change_percentage=-12h");
+    }
+    
+    private List<Crypto> getCryptos(String url) {
+        HttpClient client = HttpClient.newHttpClient();
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .build();
+        
+        try {
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            ObjectMapper mapper = new XmlMapper();
+            JsonNode root = mapper.readTree(response.body());
+            List<Crypto> cryptos = new ArrayList<>();
+            
+            for (JsonNode node : root) {
+                Crypto crypto = new Crypto();
+                crypto.setName(node.get("name").asText());
+                crypto.setSymbol(node.get("symbol").asText());
+                crypto.setPrice(node.get("current_price").asDouble());
+                crypto.setChange(node.get("price_change_percentage_12h").asDouble());
+                cryptos.add(crypto);
+            }
+            
+            Collections.sort(cryptos, new Comparator<Crypto>() {
+                @Override
+                public int compare(Crypto c1, Crypto c2) {
+                    return Double.compare(c2.getChange(), c1.getChange());
+                }
+            });
+            
+            return cryptos.subList(0, 5);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+}
